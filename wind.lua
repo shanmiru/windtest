@@ -2004,15 +2004,17 @@ C.AnchorPoint=Vector2.new(0,1)
 end
 
 if j.KeySystem.URL then
-h("Get key","key",function()
-setclipboard(j.KeySystem.URL)
-j.WindUI.Notify({
-    Title = "Notification Example 1",
-    Content = "Content",
-    Duration = 5,
-})
-end,"Secondary",A.Frame)
+    h("Get key", "key", function()
+        setclipboard(j.KeySystem.URL)
+
+        g.WindUI:Notify{
+            Title = "Copied!",
+            Content = "Key link copied to clipboard.",
+            Duration = 4
+        }
+    end, "Secondary", A.Frame)
 end
+
 
 local D=h("Submit","arrow-right",function()
 local D=q
