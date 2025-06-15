@@ -2007,7 +2007,7 @@ if j.KeySystem.URL then
     h("Get key", "key", function()
         setclipboard(j.KeySystem.URL)
 
-        g.WindUI:Notify{
+        j.WindUI:Notify{
             Title = "Copied!",
             Content = "Key link copied to clipboard.",
             Duration = 4
