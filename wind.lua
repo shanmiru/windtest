@@ -2006,6 +2006,11 @@ end
 if j.KeySystem.URL then
 h("Get key","key",function()
 setclipboard(j.KeySystem.URL)
+j.WindUI.Notify({
+    Title = "Notification Example 1",
+    Content = "Content",
+    Duration = 5,
+})
 end,"Secondary",A.Frame)
 end
 
