@@ -3631,27 +3631,46 @@ local function RecalculateListSize()
 end
 
 function UpdatePosition()
-    local t = r.UIElements.Dropdown
-    local u = r.UIElements.MenuCanvas
-
-    local v = g.ViewportSize.Y - (t.AbsolutePosition.Y + t.AbsoluteSize.Y) - o.MenuPadding - 54
-    local w = u.AbsoluteSize.Y + o.MenuPadding
-
-    local x = -54
-    if v < w then
-        x = w - v - 54
+    local dropdownFrame = r.UIElements.Dropdown
+    local menuCanvas = r.UIElements.MenuCanvas
+    
+    -- Calculate available space below dropdown
+    local spaceBelow = g.ViewportSize.Y - (dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y) - 20
+    local spaceAbove = dropdownFrame.AbsolutePosition.Y - 20
+    local menuHeight = menuCanvas.AbsoluteSize.Y
+    local menuWidth = menuCanvas.AbsoluteSize.X
+    
+    -- Calculate Y position (below or above dropdown)
+    local positionY = dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y + 2
+    
+    -- If not enough space below and more space above, position above the dropdown
+    if spaceBelow < menuHeight and spaceAbove > spaceBelow then
+        positionY = dropdownFrame.AbsolutePosition.Y - menuHeight - 2
     end
-
-    u.Position =
-        UDim2.new(
-        0,
-        t.AbsolutePosition.X + t.AbsoluteSize.X,
-        0,
-        t.AbsolutePosition.Y + t.AbsoluteSize.Y - x + o.MenuPadding
-    )
+    
+    -- Ensure menu doesn't go off-screen vertically
+    if positionY < 10 then
+        positionY = 10
+    elseif positionY + menuHeight > g.ViewportSize.Y - 10 then
+        positionY = g.ViewportSize.Y - menuHeight - 10
+    end
+    
+    -- Calculate X position (right side of dropdown)
+    local positionX = dropdownFrame.AbsolutePosition.X + dropdownFrame.AbsoluteSize.X + 5
+    
+    -- Check if menu would go off-screen to the right
+    if positionX + menuWidth > g.ViewportSize.X - 10 then
+        -- Position on the left side instead
+        positionX = dropdownFrame.AbsolutePosition.X - menuWidth - 5
+        
+        -- If still off-screen, align with screen edge
+        if positionX < 10 then
+            positionX = 10
+        end
+    end
+    
+    menuCanvas.Position = UDim2.new(0, positionX, 0, positionY)
 end
-
-
 
 function r.Display(t)
 local u=r.Values
