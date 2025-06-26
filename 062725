@@ -3590,47 +3590,65 @@ if r.Locked then
 r:Lock()
 end
 
-local function RecalculateCanvasSize(scrollingFrame, layout)
-    local contentSize = layout.AbsoluteContentSize.Y
-    scrollingFrame.CanvasSize = UDim2.fromOffset(0, contentSize)
-
-    local containerHeight = scrollingFrame.AbsoluteSize.Y
+local function RecalculateCanvasSize()
+    local contentSize = r.UIElements.UIListLayout.AbsoluteContentSize.Y
+    r.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, contentSize)
+    
+    -- Ensure scrolling is enabled when content exceeds container
+    local containerHeight = r.UIElements.Menu.CanvasGroup.ScrollingFrame.AbsoluteSize.Y
     if contentSize > containerHeight then
-        scrollingFrame.ScrollingEnabled = true
-        scrollingFrame.ScrollBarThickness = 6
-        scrollingFrame.ScrollBarImageTransparency = 0.8
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = true
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarThickness = 6
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarImageTransparency = 0.8
     else
-        scrollingFrame.ScrollingEnabled = false
-        scrollingFrame.ScrollBarThickness = 0
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = false
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarThickness = 0
     end
 end
 
-local function RecalculateListSize(dropdown)
-    local maxHeight = 300
-    local minHeight = 50
-    local layout = dropdown:FindFirstChildWhichIsA("UIListLayout")
-    local contentHeight = layout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
-    local contentWidth = math.max(190, layout.AbsoluteContentSize.X + (o.MenuPadding * 2))
-
-    local dropdownBottom = dropdown.AbsolutePosition.Y + dropdown.AbsoluteSize.Y
-    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100
-
+local function RecalculateListSize()
+    local maxHeight = 300 -- Maximum height for the dropdown menu
+    local minHeight = 50 -- Minimum height to ensure visibility
+    
+    -- Wait for layout to update before calculating
+    task.wait() -- Or use task.wait() in newer versions
+    
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
+    
+    -- Add safety check for content dimensions
+    if contentHeight <= 0 then
+        contentHeight = minHeight
+    end
+    
+    if contentWidth <= 0 then
+        contentWidth = 190
+    end
+    
+    -- Calculate viewport available height
+    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
+    
+    -- Ensure availableHeight is reasonable
+    availableHeight = math.max(availableHeight, minHeight)
+    
+    -- Use the smaller of: maxHeight, availableHeight, or contentHeight
     local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
+    
+    -- If content is smaller than our calculated height, use content height
     if contentHeight < finalHeight then
         finalHeight = contentHeight
     end
-
-    local menuCanvas = dropdown:FindFirstChild("MenuCanvas")
-    if menuCanvas then
-        menuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
-
-        local scrollingFrame = menuCanvas:FindFirstChildWhichIsA("ScrollingFrame")
-        if scrollingFrame then
-            RecalculateCanvasSize(scrollingFrame, layout)
-        end
-    end
+    
+    -- Ensure final dimensions are valid
+    finalHeight = math.max(finalHeight, minHeight)
+    contentWidth = math.max(contentWidth, 190)
+    
+    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
+    
+    -- Enable scrolling by updating canvas size
+    RecalculateCanvasSize()
 end
-
 
 function UpdatePosition()
 local t=r.UIElements.Dropdown
