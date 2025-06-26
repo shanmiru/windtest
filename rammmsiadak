@@ -3631,35 +3631,26 @@ local function RecalculateListSize()
 end
 
 function UpdatePosition()
-    local dropdownFrame = r.UIElements.Dropdown
-    local menuCanvas = r.UIElements.MenuCanvas
-    
-    -- Calculate available space below dropdown
-    local spaceBelow = g.ViewportSize.Y - (dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y) - 20
-    local spaceAbove = dropdownFrame.AbsolutePosition.Y - 20
-    local menuHeight = menuCanvas.AbsoluteSize.Y
-    
-    local positionY = dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y + 2
-    
-    -- If not enough space below and more space above, position above the dropdown
-    if spaceBelow < menuHeight and spaceAbove > spaceBelow then
-        positionY = dropdownFrame.AbsolutePosition.Y - menuHeight - 2
+    local t = r.UIElements.Dropdown
+    local u = r.UIElements.MenuCanvas
+
+    local v = g.ViewportSize.Y - (t.AbsolutePosition.Y + t.AbsoluteSize.Y) - o.MenuPadding - 54
+    local w = u.AbsoluteSize.Y + o.MenuPadding
+
+    local x = -54
+    if v < w then
+        x = w - v - 54
     end
-    
-    -- Ensure menu doesn't go off-screen
-    if positionY < 10 then
-        positionY = 10
-    elseif positionY + menuHeight > g.ViewportSize.Y - 10 then
-        positionY = g.ViewportSize.Y - menuHeight - 10
-    end
-    
-    menuCanvas.Position = UDim2.new(
+
+    u.Position =
+        UDim2.new(
         0,
-        math.min(dropdownFrame.AbsolutePosition.X, g.ViewportSize.X - menuCanvas.AbsoluteSize.X - 10),
+        t.AbsolutePosition.X + t.AbsoluteSize.X,
         0,
-        positionY
+        t.AbsolutePosition.Y + t.AbsoluteSize.Y - x + o.MenuPadding
     )
 end
+
 
 
 function r.Display(t)
