@@ -3608,7 +3608,9 @@ end
 
 local function RecalculateListSize()
     local maxHeight = 300 -- Maximum height for the dropdown menu
-    local minHeight = 50  -- Minimum height to ensure visibility
+    local minHeight = 120 -- INCREASED minimum height to ensure consistent size
+    local standardHeight = 150 -- Standard height for dropdowns with few items
+    
     local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
     local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
     
@@ -3616,12 +3618,20 @@ local function RecalculateListSize()
     local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
     local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
     
-    -- Use the smaller of: maxHeight, availableHeight, or contentHeight
+    -- Use the smaller of: maxHeight, availableHeight
     local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
     
-    -- If content is smaller than our calculated height, use content height
-    if contentHeight < finalHeight then
-        finalHeight = contentHeight
+    -- KEY CHANGE: Instead of using content height when it's smaller,
+    -- use a standard height for consistency, but allow scrolling if content is larger
+    if contentHeight > standardHeight then
+        -- If content is larger than standard, use calculated height up to max
+        finalHeight = math.min(maxHeight, contentHeight)
+    else
+        -- If content is smaller, use standard height for consistency
+        finalHeight = math.max(standardHeight, minHeight)
+        
+        -- But don't exceed available space
+        finalHeight = math.min(finalHeight, availableHeight)
     end
     
     r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
@@ -3629,7 +3639,6 @@ local function RecalculateListSize()
     -- Enable scrolling by updating canvas size
     RecalculateCanvasSize()
 end
-
 function UpdatePosition()
 local t=r.UIElements.Dropdown
 local u=r.UIElements.MenuCanvas
