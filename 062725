@@ -3593,7 +3593,8 @@ end
 local function RecalculateCanvasSize()
     local contentSize = r.UIElements.UIListLayout.AbsoluteContentSize.Y
     r.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, contentSize)
-
+    
+    -- Ensure scrolling is enabled when content exceeds container
     local containerHeight = r.UIElements.Menu.CanvasGroup.ScrollingFrame.AbsoluteSize.Y
     if contentSize > containerHeight then
         r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = true
@@ -3606,32 +3607,28 @@ local function RecalculateCanvasSize()
 end
 
 local function RecalculateListSize()
-    local maxHeight = 300 -- Maximum height for menu
-    local minHeight = 50  -- Minimum menu height
-    local totalContentHeight = 0
-    local maxWidth = 190 -- Base width minimum
+    local maxHeight = 300 -- Maximum height for the dropdown menu
+    local minHeight = 50  -- Minimum height to ensure visibility
 
+    -- Get all dropdowns in the current tab
+    local totalContentHeight = 0
     for _, dropdown in pairs(r.UIElements.AllDropdowns) do
-        if dropdown and dropdown:IsDescendantOf(game) and dropdown.Visible then
-            local layout = dropdown:FindFirstChildWhichIsA("UIListLayout")
-            if layout then
-                local height = layout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
-                local width = layout.AbsoluteContentSize.X + (o.MenuPadding * 2)
-                totalContentHeight += height
-                maxWidth = math.max(maxWidth, width)
-            end
-        end
+        totalContentHeight += dropdown.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
     end
 
-    local dropdownBottom = r.UIElements.Dropdown1.AbsolutePosition.Y + r.UIElements.Dropdown1.AbsoluteSize.Y
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
+
+    -- Calculate available height from dropdown position to screen bottom
+    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
     local availableHeight = g.ViewportSize.Y - dropdownBottom - 100
 
+    -- Final height based on content and limits
     local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
     if totalContentHeight < finalHeight then
         finalHeight = totalContentHeight
     end
 
-    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(maxWidth, finalHeight)
+    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
     RecalculateCanvasSize()
 end
 
