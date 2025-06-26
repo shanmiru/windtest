@@ -3457,469 +3457,446 @@ MenuCorner=15,
 MenuPadding=5,
 TabPadding=6,
 }
-function o.New(p, q)
-    local r = {
-        __type = "Dropdown",
-        Title = q.Title or "Dropdown",
-        Desc = q.Desc or nil,
-        Locked = q.Locked or false,
-        Values = q.Values or {},
-        Value = q.Value,
-        AllowNone = q.AllowNone,
-        Multi = q.Multi,
-        Callback = q.Callback or function()
-            end,
-        UIElements = {},
-        Opened = false,
-        Tabs = {}
-    }
 
-    local s = true
+function o.New(p,q)
+local r={
+__type="Dropdown",
+Title=q.Title or"Dropdown",
+Desc=q.Desc or nil,
+Locked=q.Locked or false,
+Values=q.Values or{},
+Value=q.Value,
+AllowNone=q.AllowNone,
+Multi=q.Multi,
+Callback=q.Callback or function()end,
 
-    r.DropdownFrame =
-        a.load "j" {
-        Title = r.Title,
-        Desc = r.Desc,
-        Parent = q.Parent,
-        TextOffset = 0,
-        Hover = false
-    }
+UIElements={},
 
-    r.UIElements.Dropdown = n("", nil, r.DropdownFrame.UIElements.Container)
+Opened=false,
+Tabs={}
+}
 
-    r.UIElements.Dropdown.Frame.Frame.TextLabel.TextTruncate = "AtEnd"
-    r.UIElements.Dropdown.Frame.Frame.TextLabel.Size =
-        UDim2.new(1, r.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset - 18 - 12 - 12, 0, 0)
+local s=true
 
-    r.UIElements.Dropdown.Size = UDim2.new(1, 0, 0, 40)
+r.DropdownFrame=a.load'j'{
+Title=r.Title,
+Desc=r.Desc,
+Parent=q.Parent,
+TextOffset=0,
+Hover=false,
+}
 
-    i(
-        "ImageLabel",
-        {
-            Image = h.Icon "chevrons-up-down"[1],
-            ImageRectOffset = h.Icon "chevrons-up-down"[2].ImageRectPosition,
-            ImageRectSize = h.Icon "chevrons-up-down"[2].ImageRectSize,
-            Size = UDim2.new(0, 18, 0, 18),
-            Position = UDim2.new(1, -12, 0.5, 0),
-            ThemeTag = {
-                ImageColor3 = "Icon"
-            },
-            AnchorPoint = Vector2.new(1, 0.5),
-            Parent = r.UIElements.Dropdown.Frame
-        }
-    )
 
-    r.UIElements.UIListLayout =
-        i(
-        "UIListLayout",
-        {
-            Padding = UDim.new(0, o.MenuPadding / 1.5),
-            FillDirection = "Vertical"
-        }
-    )
+r.UIElements.Dropdown=n("",nil,r.DropdownFrame.UIElements.Container)
 
-    r.UIElements.Menu =
-        h.NewRoundFrame(
-        o.MenuCorner,
-        "Squircle",
-        {
-            ThemeTag = {
-                ImageColor3 = "Background"
-            },
-            ImageTransparency = 0.05,
-            Size = UDim2.new(1, 0, 1, 0),
-            AnchorPoint = Vector2.new(1, 0),
-            Position = UDim2.new(1, 0, 0, 0)
-        },
-        {
-            i(
-                "UIPadding",
-                {
-                    PaddingTop = UDim.new(0, o.MenuPadding),
-                    PaddingLeft = UDim.new(0, o.MenuPadding),
-                    PaddingRight = UDim.new(0, o.MenuPadding),
-                    PaddingBottom = UDim.new(0, o.MenuPadding)
-                }
-            ),
-            i(
-                "CanvasGroup",
-                {
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 1, 0),
-                    ClipsDescendants = true
-                },
-                {
-                    i(
-                        "UICorner",
-                        {
-                            CornerRadius = UDim.new(0, o.MenuCorner - o.MenuPadding)
-                        }
-                    ),
-                    i(
-                        "ScrollingFrame",
-                        {
-                            Size = UDim2.new(1, 0, 1, 0),
-                            ScrollBarThickness = 0,
-                            ScrollingDirection = "Y",
-                            AutomaticCanvasSize = "Y",
-                            CanvasSize = UDim2.new(0, 0, 0, 0),
-                            BackgroundTransparency = 1,
-                            ScrollBarImageTransparency = 1
-                        },
-                        {
-                            r.UIElements.UIListLayout
-                        }
-                    )
-                }
-            )
-        }
-    )
+r.UIElements.Dropdown.Frame.Frame.TextLabel.TextTruncate="AtEnd"
+r.UIElements.Dropdown.Frame.Frame.TextLabel.Size=UDim2.new(1,r.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset-18-12-12,0,0)
 
-    r.UIElements.MenuCanvas =
-        i(
-        "CanvasGroup",
-        {
-            Size = UDim2.new(0, 190, 0, 300),
-            BackgroundTransparency = 1,
-            Position = UDim2.new(-10, 0, -10, 0),
-            Visible = false,
-            Active = false,
-            GroupTransparency = 1,
-            Parent = q.WindUI.DropdownGui,
-            AnchorPoint = Vector2.new(1, 0)
-        },
-        {
-            r.UIElements.Menu,
-            i(
-                "UISizeConstraint",
-                {
-                    MinSize = Vector2.new(190, 0)
-                }
-            )
-        }
-    )
+r.UIElements.Dropdown.Size=UDim2.new(1,0,0,40)
 
-    function r.Lock(t)
-        s = false
-        return r.DropdownFrame:Lock()
-    end
-    function r.Unlock(t)
-        s = true
-        return r.DropdownFrame:Unlock()
-    end
 
-    if r.Locked then
-        r:Lock()
-    end
 
-    local function RecalculateCanvasSize()
-        r.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize =
-            UDim2.fromOffset(0, r.UIElements.UIListLayout.AbsoluteContentSize.Y)
-    end
 
-    local function RecalculateListSize()
-        if #r.Values > 10 then
-            r.UIElements.MenuCanvas.Size = UDim2.fromOffset(r.UIElements.UIListLayout.AbsoluteContentSize.X, 392)
-        else
-            r.UIElements.MenuCanvas.Size =
-                UDim2.fromOffset(
-                r.UIElements.UIListLayout.AbsoluteContentSize.X,
-                r.UIElements.UIListLayout.AbsoluteContentSize.Y + o.MenuPadding
-            )
-        end
-    end
 
-    function UpdatePosition()
-        local t = r.UIElements.Dropdown
-        local u = r.UIElements.MenuCanvas
 
-        local v = g.ViewportSize.Y - (t.AbsolutePosition.Y + t.AbsoluteSize.Y) - o.MenuPadding - 54
-        local w = u.AbsoluteSize.Y + o.MenuPadding
+i("ImageLabel",{
+Image=h.Icon"chevrons-up-down"[1],
+ImageRectOffset=h.Icon"chevrons-up-down"[2].ImageRectPosition,
+ImageRectSize=h.Icon"chevrons-up-down"[2].ImageRectSize,
+Size=UDim2.new(0,18,0,18),
+Position=UDim2.new(1,-12,0.5,0),
+ThemeTag={
+ImageColor3="Icon"
+},
+AnchorPoint=Vector2.new(1,0.5),
+Parent=r.UIElements.Dropdown.Frame
+})
 
-        local x = -54
-        if v < w then
-            x = w - v - 54
-        end
+r.UIElements.UIListLayout=i("UIListLayout",{
+Padding=UDim.new(0,o.MenuPadding/1.5),
+FillDirection="Vertical"
+})
 
-        u.Position =
-            UDim2.new(
-            0,
-            t.AbsolutePosition.X + t.AbsoluteSize.X,
-            0,
-            t.AbsolutePosition.Y + t.AbsoluteSize.Y - x + o.MenuPadding
-        )
-    end
+r.UIElements.Menu=h.NewRoundFrame(o.MenuCorner,"Squircle",{
+ThemeTag={
+ImageColor3="Background",
+},
+ImageTransparency=0.05,
+Size=UDim2.new(1,0,1,0),
+AnchorPoint=Vector2.new(1,0),
+Position=UDim2.new(1,0,0,0),
+},{
+i("UIPadding",{
+PaddingTop=UDim.new(0,o.MenuPadding),
+PaddingLeft=UDim.new(0,o.MenuPadding),
+PaddingRight=UDim.new(0,o.MenuPadding),
+PaddingBottom=UDim.new(0,o.MenuPadding),
+}),
+i("CanvasGroup",{
+BackgroundTransparency=1,
+Size=UDim2.new(1,0,1,0),
 
-    function r.Display(t)
-        local u = r.Values
-        local v = ""
+ClipsDescendants=true
+},{
+i("UICorner",{
+CornerRadius=UDim.new(0,o.MenuCorner-o.MenuPadding),
+}),
+i("ScrollingFrame",{
+Size=UDim2.new(1,0,1,0),
+ScrollBarThickness=0,
+ScrollingDirection="Y",
+AutomaticCanvasSize="Y",
+CanvasSize=UDim2.new(0,0,0,0),
+BackgroundTransparency=1,
+ScrollBarImageTransparency=1,
+},{
+r.UIElements.UIListLayout,
+})
+})
+})
 
-        if r.Multi then
-            for w, x in next, u do
-                if table.find(r.Value, x) then
-                    v = v .. x .. ", "
-                end
-            end
-            v = v:sub(1, #v - 2)
-        else
-            v = r.Value or ""
-        end
+r.UIElements.MenuCanvas=i("CanvasGroup",{
+Size=UDim2.new(0,190,0,300),
+BackgroundTransparency=1,
+Position=UDim2.new(-10,0,-10,0),
+Visible=false,
+Active=false,
+GroupTransparency=1,
+Parent=q.WindUI.DropdownGui,
+AnchorPoint=Vector2.new(1,0),
+},{
+r.UIElements.Menu,
 
-        r.UIElements.Dropdown.Frame.Frame.TextLabel.Text = (v == "" and "--" or v)
-    end
 
-    function r.Refresh(t, u)
-        for v, w in next, r.UIElements.Menu.CanvasGroup.ScrollingFrame:GetChildren() do
-            if not w:IsA "UIListLayout" then
-                w:Destroy()
-            end
-        end
 
-        r.Tabs = {}
 
-        for x, y in next, u do
-            local z = {
-                Name = y,
-                Selected = false,
-                UIElements = {}
-            }
-            z.UIElements.TabItem =
-                i(
-                "TextButton",
-                {
-                    Size = UDim2.new(1, 0, 0, 34),
-                    BackgroundTransparency = 1,
-                    Parent = r.UIElements.Menu.CanvasGroup.ScrollingFrame,
-                    Text = ""
-                },
-                {
-                    i(
-                        "UIPadding",
-                        {
-                            PaddingTop = UDim.new(0, o.TabPadding),
-                            PaddingLeft = UDim.new(0, o.TabPadding + 2),
-                            PaddingRight = UDim.new(0, o.TabPadding + 2),
-                            PaddingBottom = UDim.new(0, o.TabPadding)
-                        }
-                    ),
-                    i(
-                        "UICorner",
-                        {
-                            CornerRadius = UDim.new(0, o.MenuCorner - o.MenuPadding)
-                        }
-                    ),
-                    i(
-                        "ImageLabel",
-                        {
-                            Image = h.Icon "check"[1],
-                            ImageRectSize = h.Icon "check"[2].ImageRectSize,
-                            ImageRectOffset = h.Icon "check"[2].ImageRectPosition,
-                            ThemeTag = {
-                                ImageColor3 = "Text"
-                            },
-                            ImageTransparency = 1,
-                            Size = UDim2.new(0, 18, 0, 18),
-                            AnchorPoint = Vector2.new(0, 0.5),
-                            Position = UDim2.new(0, 0, 0.5, 0),
-                            BackgroundTransparency = 1
-                        }
-                    ),
-                    i(
-                        "TextLabel",
-                        {
-                            Text = y,
-                            TextXAlignment = "Left",
-                            FontFace = Font.new(h.Font, Enum.FontWeight.Medium),
-                            ThemeTag = {
-                                TextColor3 = "Text",
-                                BackgroundColor3 = "Text"
-                            },
-                            TextSize = 15,
-                            BackgroundTransparency = 1,
-                            TextTransparency = .4,
-                            AutomaticSize = "Y",
-                            TextTruncate = "AtEnd",
-                            Size = UDim2.new(1, -18 - o.TabPadding * 3, 0, 0),
-                            AnchorPoint = Vector2.new(0, 0.5),
-                            Position = UDim2.new(0, 0, 0.5, 0)
-                        }
-                    )
-                }
-            )
 
-            if r.Multi then
-                z.Selected = table.find(r.Value or {}, z.Name)
-            else
-                z.Selected = r.Value == z.Name
-            end
 
-            if z.Selected then
-                z.UIElements.TabItem.BackgroundTransparency = .93
-                z.UIElements.TabItem.ImageLabel.ImageTransparency = .1
-                z.UIElements.TabItem.TextLabel.Position = UDim2.new(0, 18 + o.TabPadding + 2, 0.5, 0)
-                z.UIElements.TabItem.TextLabel.TextTransparency = 0
-            end
+i("UISizeConstraint",{
+MinSize=Vector2.new(190,0)
+})
+})
 
-            r.Tabs[x] = z
-
-            r:Display()
-
-            local function Callback()
-                r:Display()
-                task.spawn(
-                    function()
-                        h.SafeCallback(r.Callback, r.Value)
-                    end
-                )
-            end
-
-            h.AddSignal(
-                z.UIElements.TabItem.MouseButton1Click,
-                function()
-                    if r.Multi then
-                        if not z.Selected then
-                            z.Selected = true
-                            j(z.UIElements.TabItem, 0.1, {BackgroundTransparency = .93}):Play()
-                            j(z.UIElements.TabItem.ImageLabel, 0.1, {ImageTransparency = .1}):Play()
-                            j(
-                                z.UIElements.TabItem.TextLabel,
-                                0.1,
-                                {Position = UDim2.new(0, 18 + o.TabPadding, 0.5, 0), TextTransparency = 0}
-                            ):Play()
-                            table.insert(r.Value, z.Name)
-                        else
-                            if not r.AllowNone and #r.Value == 1 then
-                                return
-                            end
-                            z.Selected = false
-                            j(z.UIElements.TabItem, 0.1, {BackgroundTransparency = 1}):Play()
-                            j(z.UIElements.TabItem.ImageLabel, 0.1, {ImageTransparency = 1}):Play()
-                            j(
-                                z.UIElements.TabItem.TextLabel,
-                                0.1,
-                                {Position = UDim2.new(0, 0, 0.5, 0), TextTransparency = .4}
-                            ):Play()
-                            for A, B in ipairs(r.Value) do
-                                if B == z.Name then
-                                    table.remove(r.Value, A)
-                                    break
-                                end
-                            end
-                        end
-                    else
-                        for A, B in next, r.Tabs do
-                            j(B.UIElements.TabItem, 0.1, {BackgroundTransparency = 1}):Play()
-                            j(B.UIElements.TabItem.ImageLabel, 0.1, {ImageTransparency = 1}):Play()
-                            j(
-                                B.UIElements.TabItem.TextLabel,
-                                0.1,
-                                {Position = UDim2.new(0, 0, 0.5, 0), TextTransparency = .4}
-                            ):Play()
-                            B.Selected = false
-                        end
-                        z.Selected = true
-                        j(z.UIElements.TabItem, 0.1, {BackgroundTransparency = .93}):Play()
-                        j(z.UIElements.TabItem.ImageLabel, 0.1, {ImageTransparency = .1}):Play()
-                        j(
-                            z.UIElements.TabItem.TextLabel,
-                            0.1,
-                            {Position = UDim2.new(0, 18 + o.TabPadding, 0.5, 0), TextTransparency = 0}
-                        ):Play()
-                        r.Value = z.Name
-                    end
-                    Callback()
-                end
-            )
-
-            RecalculateCanvasSize()
-            RecalculateListSize()
-        end
-    end
-
-    r:Refresh(r.Values)
-
-    function r.Select(t, u)
-        if u then
-            r.Value = u
-        end
-        r:Refresh(r.Values)
-    end
-
-    RecalculateListSize()
-
-    function r.Open(t)
-        r.UIElements.MenuCanvas.Visible = true
-        r.UIElements.MenuCanvas.Active = true
-        r.UIElements.Menu.Size = UDim2.new(1, 0, 0, 0)
-        j(
-            r.UIElements.Menu,
-            0.1,
-            {
-                Size = UDim2.new(1, 0, 1, 0)
-            },
-            Enum.EasingStyle.Quart,
-            Enum.EasingDirection.Out
-        ):Play()
-
-        task.spawn(
-            function()
-                task.wait(.1)
-                r.Opened = true
-            end
-        )
-
-        j(r.UIElements.MenuCanvas, .15, {GroupTransparency = 0}):Play()
-
-        UpdatePosition()
-    end
-    function r.Close(t)
-        r.Opened = false
-
-        j(
-            r.UIElements.Menu,
-            0.1,
-            {
-                Size = UDim2.new(1, 0, 0.8, 0)
-            },
-            Enum.EasingStyle.Quart,
-            Enum.EasingDirection.Out
-        ):Play()
-
-        j(r.UIElements.MenuCanvas, .15, {GroupTransparency = 1}):Play()
-        task.wait(.1)
-        r.UIElements.MenuCanvas.Visible = false
-        r.UIElements.MenuCanvas.Active = false
-    end
-
-    h.AddSignal(
-        r.UIElements.Dropdown.MouseButton1Click,
-        function()
-            if s then
-                r:Open()
-            end
-        end
-    )
-
-    h.AddSignal(
-        b.InputBegan,
-        function(t)
-            if t.UserInputType == Enum.UserInputType.MouseButton1 or t.UserInputType == Enum.UserInputType.Touch then
-                local u, v = r.UIElements.MenuCanvas.AbsolutePosition, r.UIElements.MenuCanvas.AbsoluteSize
-                if
-                    q.Window.CanDropdown and r.Opened and
-                        (e.X < u.X or e.X > u.X + v.X or e.Y < (u.Y - 20 - 1) or e.Y > u.Y + v.Y)
-                 then
-                    r:Close()
-                end
-            end
-        end
-    )
-
-    h.AddSignal(r.UIElements.Dropdown:GetPropertyChangedSignal "AbsolutePosition", UpdatePosition)
-
-    return r.__type, r
+function r.Lock(t)
+s=false
+return r.DropdownFrame:Lock()
+end
+function r.Unlock(t)
+s=true
+return r.DropdownFrame:Unlock()
 end
 
+if r.Locked then
+r:Lock()
+end
+
+local function RecalculateCanvasSize()
+    local contentSize = r.UIElements.UIListLayout.AbsoluteContentSize.Y
+    r.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, contentSize)
+    
+    -- Ensure scrolling is enabled when content exceeds container
+    local containerHeight = r.UIElements.Menu.CanvasGroup.ScrollingFrame.AbsoluteSize.Y
+    if contentSize > containerHeight then
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = true
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarThickness = 6
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarImageTransparency = 0.8
+    else
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = false
+        r.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollBarThickness = 0
+    end
+end
+
+local function RecalculateListSize()
+    local maxHeight = 300 -- Maximum height for the dropdown menu
+    local minHeight = 50  -- Minimum height to ensure visibility
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
+    
+    -- Calculate viewport available height
+    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
+    
+    -- Use the smaller of: maxHeight, availableHeight, or contentHeight
+    local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
+    
+    -- If content is smaller than our calculated height, use content height
+    if contentHeight < finalHeight then
+        finalHeight = contentHeight
+    end
+    
+    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
+    
+    -- Enable scrolling by updating canvas size
+    RecalculateCanvasSize()
+end
+
+function UpdatePosition()
+    local dropdownFrame = r.UIElements.Dropdown
+    local menuCanvas = r.UIElements.MenuCanvas
+    
+    -- Calculate available space below dropdown
+    local spaceBelow = g.ViewportSize.Y - (dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y) - 20
+    local spaceAbove = dropdownFrame.AbsolutePosition.Y - 20
+    local menuHeight = menuCanvas.AbsoluteSize.Y
+    
+    local positionY = dropdownFrame.AbsolutePosition.Y + dropdownFrame.AbsoluteSize.Y + 2
+    
+    -- If not enough space below and more space above, position above the dropdown
+    if spaceBelow < menuHeight and spaceAbove > spaceBelow then
+        positionY = dropdownFrame.AbsolutePosition.Y - menuHeight - 2
+    end
+    
+    -- Ensure menu doesn't go off-screen
+    if positionY < 10 then
+        positionY = 10
+    elseif positionY + menuHeight > g.ViewportSize.Y - 10 then
+        positionY = g.ViewportSize.Y - menuHeight - 10
+    end
+    
+    menuCanvas.Position = UDim2.new(
+        0,
+        math.min(dropdownFrame.AbsolutePosition.X, g.ViewportSize.X - menuCanvas.AbsoluteSize.X - 10),
+        0,
+        positionY
+    )
+end
+
+
+function r.Display(t)
+local u=r.Values
+local v=""
+
+if r.Multi then
+for w,x in next,u do
+if table.find(r.Value,x)then
+v=v..x..", "
+end
+end
+v=v:sub(1,#v-2)
+else
+v=r.Value or""
+end
+
+r.UIElements.Dropdown.Frame.Frame.TextLabel.Text=(v==""and"--"or v)
+end
+
+function r.Refresh(t,u)
+for v,w in next,r.UIElements.Menu.CanvasGroup.ScrollingFrame:GetChildren()do
+if not w:IsA"UIListLayout"then
+w:Destroy()
+end
+end
+
+r.Tabs={}
+
+for x,y in next,u do
+
+local z={
+Name=y,
+Selected=false,
+UIElements={},
+}
+z.UIElements.TabItem=i("TextButton",{
+Size=UDim2.new(1,0,0,34),
+
+BackgroundTransparency=1,
+Parent=r.UIElements.Menu.CanvasGroup.ScrollingFrame,
+Text="",
+
+},{
+i("UIPadding",{
+PaddingTop=UDim.new(0,o.TabPadding),
+PaddingLeft=UDim.new(0,o.TabPadding+2),
+PaddingRight=UDim.new(0,o.TabPadding+2),
+PaddingBottom=UDim.new(0,o.TabPadding),
+}),
+i("UICorner",{
+CornerRadius=UDim.new(0,o.MenuCorner-o.MenuPadding)
+}),
+i("ImageLabel",{
+Image=h.Icon"check"[1],
+ImageRectSize=h.Icon"check"[2].ImageRectSize,
+ImageRectOffset=h.Icon"check"[2].ImageRectPosition,
+ThemeTag={
+ImageColor3="Text",
+},
+ImageTransparency=1,
+Size=UDim2.new(0,18,0,18),
+AnchorPoint=Vector2.new(0,0.5),
+Position=UDim2.new(0,0,0.5,0),
+BackgroundTransparency=1,
+}),
+i("TextLabel",{
+Text=y,
+TextXAlignment="Left",
+FontFace=Font.new(h.Font,Enum.FontWeight.Medium),
+ThemeTag={
+TextColor3="Text",
+BackgroundColor3="Text"
+},
+TextSize=15,
+BackgroundTransparency=1,
+TextTransparency=.4,
+AutomaticSize="Y",
+TextTruncate="AtEnd",
+Size=UDim2.new(1,-18-o.TabPadding*3,0,0),
+AnchorPoint=Vector2.new(0,0.5),
+Position=UDim2.new(0,0,0.5,0),
+})
+})
+
+
+if r.Multi then
+z.Selected=table.find(r.Value or{},z.Name)
+else
+z.Selected=r.Value==z.Name
+end
+
+if z.Selected then
+z.UIElements.TabItem.BackgroundTransparency=.93
+z.UIElements.TabItem.ImageLabel.ImageTransparency=.1
+z.UIElements.TabItem.TextLabel.Position=UDim2.new(0,18+o.TabPadding+2,0.5,0)
+z.UIElements.TabItem.TextLabel.TextTransparency=0
+end
+
+r.Tabs[x]=z
+
+r:Display()
+
+local function Callback()
+r:Display()
+task.spawn(function()
+h.SafeCallback(r.Callback,r.Value)
+end)
+end
+
+h.AddSignal(z.UIElements.TabItem.MouseButton1Click,function()
+if r.Multi then
+if not z.Selected then
+z.Selected=true
+j(z.UIElements.TabItem,0.1,{BackgroundTransparency=.93}):Play()
+j(z.UIElements.TabItem.ImageLabel,0.1,{ImageTransparency=.1}):Play()
+j(z.UIElements.TabItem.TextLabel,0.1,{Position=UDim2.new(0,18+o.TabPadding,0.5,0),TextTransparency=0}):Play()
+table.insert(r.Value,z.Name)
+else
+if not r.AllowNone and#r.Value==1 then
+return
+end
+z.Selected=false
+j(z.UIElements.TabItem,0.1,{BackgroundTransparency=1}):Play()
+j(z.UIElements.TabItem.ImageLabel,0.1,{ImageTransparency=1}):Play()
+j(z.UIElements.TabItem.TextLabel,0.1,{Position=UDim2.new(0,0,0.5,0),TextTransparency=.4}):Play()
+for A,B in ipairs(r.Value)do
+if B==z.Name then
+table.remove(r.Value,A)
+break
+end
+end
+end
+else
+for A,B in next,r.Tabs do
+
+j(B.UIElements.TabItem,0.1,{BackgroundTransparency=1}):Play()
+j(B.UIElements.TabItem.ImageLabel,0.1,{ImageTransparency=1}):Play()
+j(B.UIElements.TabItem.TextLabel,0.1,{Position=UDim2.new(0,0,0.5,0),TextTransparency=.4}):Play()
+B.Selected=false
+end
+z.Selected=true
+j(z.UIElements.TabItem,0.1,{BackgroundTransparency=.93}):Play()
+j(z.UIElements.TabItem.ImageLabel,0.1,{ImageTransparency=.1}):Play()
+j(z.UIElements.TabItem.TextLabel,0.1,{Position=UDim2.new(0,18+o.TabPadding,0.5,0),TextTransparency=0}):Play()
+r.Value=z.Name
+end
+Callback()
+end)
+
+RecalculateCanvasSize()
+RecalculateListSize()
+end
+end
+
+r:Refresh(r.Values)
+
+function r.Select(t,u)
+if u then
+r.Value=u
+end
+r:Refresh(r.Values)
+end
+
+
+RecalculateListSize()
+
+function r.Open(t)
+r.UIElements.MenuCanvas.Visible=true
+r.UIElements.MenuCanvas.Active=true
+r.UIElements.Menu.Size=UDim2.new(
+1,0,
+0,0
+)
+j(r.UIElements.Menu,0.1,{
+Size=UDim2.new(
+1,0,
+1,0
+)
+},Enum.EasingStyle.Quart,Enum.EasingDirection.Out):Play()
+
+task.spawn(function()
+task.wait(.1)
+r.Opened=true
+end)
+
+
+j(r.UIElements.MenuCanvas,.15,{GroupTransparency=0}):Play()
+
+UpdatePosition()
+end
+function r.Close(t)
+r.Opened=false
+
+j(r.UIElements.Menu,0.1,{
+Size=UDim2.new(
+1,0,
+0.8,0
+)
+},Enum.EasingStyle.Quart,Enum.EasingDirection.Out):Play()
+
+j(r.UIElements.MenuCanvas,.15,{GroupTransparency=1}):Play()
+task.wait(.1)
+r.UIElements.MenuCanvas.Visible=false
+r.UIElements.MenuCanvas.Active=false
+end
+
+h.AddSignal(r.UIElements.Dropdown.MouseButton1Click,function()
+if s then
+r:Open()
+end
+end)
+
+h.AddSignal(b.InputBegan,function(t)
+if
+t.UserInputType==Enum.UserInputType.MouseButton1
+or t.UserInputType==Enum.UserInputType.Touch
+then
+local u,v=r.UIElements.MenuCanvas.AbsolutePosition,r.UIElements.MenuCanvas.AbsoluteSize
+if
+q.Window.CanDropdown
+and r.Opened
+and(e.X<u.X
+or e.X>u.X+v.X
+or e.Y<(u.Y-20-1)
+or e.Y>u.Y+v.Y
+)
+then
+r:Close()
+end
+end
+end)
+
+h.AddSignal(r.UIElements.Dropdown:GetPropertyChangedSignal"AbsolutePosition",UpdatePosition)
+
+return r.__type,r
+end
 
 return o end function a.q()
 local b=a.load'a'local e=
