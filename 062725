@@ -3609,24 +3609,26 @@ end
 local function RecalculateListSize()
     local maxHeight = 300 -- Maximum height for the dropdown menu
     local minHeight = 50  -- Minimum height to ensure visibility
-    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
-    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
-    
-    -- Calculate viewport available height
-    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
-    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
-    
-    -- Use the smaller of: maxHeight, availableHeight, or contentHeight
-    local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
-    
-    -- If content is smaller than our calculated height, use content height
-    if contentHeight < finalHeight then
-        finalHeight = contentHeight
+
+    -- Get all dropdowns in the current tab
+    local totalContentHeight = 0
+    for _, dropdown in pairs(r.UIElements.AllDropdowns) do
+        totalContentHeight += dropdown.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
     end
-    
+
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
+
+    -- Calculate available height from dropdown position to screen bottom
+    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100
+
+    -- Final height based on content and limits
+    local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
+    if totalContentHeight < finalHeight then
+        finalHeight = totalContentHeight
+    end
+
     r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
-    
-    -- Enable scrolling by updating canvas size
     RecalculateCanvasSize()
 end
 
