@@ -3608,29 +3608,13 @@ end
 
 local function RecalculateListSize()
     local maxHeight = 300 -- Maximum height for the dropdown menu
-    local minHeight = 50 -- Minimum height to ensure visibility
-    
-    -- Wait for layout to update before calculating
-    task.wait() -- Or use task.wait() in newer versions
-    
+    local minHeight = 50  -- Minimum height to ensure visibility
     local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
     local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
-    
-    -- Add safety check for content dimensions
-    if contentHeight <= 0 then
-        contentHeight = minHeight
-    end
-    
-    if contentWidth <= 0 then
-        contentWidth = 190
-    end
     
     -- Calculate viewport available height
     local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
     local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
-    
-    -- Ensure availableHeight is reasonable
-    availableHeight = math.max(availableHeight, minHeight)
     
     -- Use the smaller of: maxHeight, availableHeight, or contentHeight
     local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
@@ -3639,10 +3623,6 @@ local function RecalculateListSize()
     if contentHeight < finalHeight then
         finalHeight = contentHeight
     end
-    
-    -- Ensure final dimensions are valid
-    finalHeight = math.max(finalHeight, minHeight)
-    contentWidth = math.max(contentWidth, 190)
     
     r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
     
