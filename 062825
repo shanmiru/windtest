@@ -3632,7 +3632,7 @@ local function RecalculateListSize()
 
     -- Determine final height
      local maxAllowedHeight = math.max(MIN_HEIGHT, math.min(MAX_HEIGHT, availableHeight))
-     print('new1')
+     print('new2')
      local finalHeight = math.clamp(contentHeight, MIN_HEIGHT, maxAllowedHeight)
 
 
@@ -3646,7 +3646,7 @@ local function RecalculateListSize()
     r.UIElements.Menu.CanvasGroup.ScrollingFrame.AnchorPoint = Vector2.new(0, 0)
 
     -- Recalculate scrollable area
-    RecalculateCanvasSize()
+    task.defer(RecalculateCanvasSize)
 end
 
 function UpdatePosition()
@@ -3817,10 +3817,8 @@ end
 Callback()
 end)
 
-RecalculateCanvasSize()
-task.defer(function()
-    RecalculateListSize()
-end)
+task.defer(RecalculateCanvasSize)
+task.defer(RecalculateListSize)
 end
 end
 
@@ -3834,9 +3832,7 @@ r:Refresh(r.Values)
 end
 
 
-task.defer(function()
-    RecalculateListSize()
-end)
+task.defer(RecalculateListSize)
 
 function r.Open(t)
 r.UIElements.MenuCanvas.Visible=true
