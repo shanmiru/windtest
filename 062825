@@ -3632,7 +3632,6 @@ local function RecalculateListSize()
 
     -- Determine final height
      local maxAllowedHeight = math.max(MIN_HEIGHT, math.min(MAX_HEIGHT, availableHeight))
-     print('new2')
      local finalHeight = math.clamp(contentHeight, MIN_HEIGHT, maxAllowedHeight)
 
 
