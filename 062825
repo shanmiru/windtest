@@ -3607,62 +3607,36 @@ local function RecalculateCanvasSize()
 end
 
 local function RecalculateListSize()
-    local maxHeight = 300 -- Maximum height for dropdown
-    local minHeight = 100 -- Slightly reduced to fit mobile
-    local standardHeight = 150 -- Used for consistent UI
-    local itemHeight = 30 -- Estimated per item
+    local maxHeight = 300 -- Maximum height for the dropdown menu
+    local minHeight = 120 -- INCREASED minimum height to ensure consistent size
+    local standardHeight = 150 -- Standard height for dropdowns with few items
     
-    -- Calculate actual content height and width
-    local layout = r.UIElements.UIListLayout
-    local contentHeight = layout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
-    local contentWidth = math.max(190, layout.AbsoluteContentSize.X + (o.MenuPadding * 2))
-
-    -- Fallback height if layout hasn't been updated yet
-    if contentHeight <= (o.MenuPadding * 2) then
-        local itemCount = 0
-        for _, child in ipairs(layout.Parent:GetChildren()) do
-            if child:IsA("GuiObject") and child.Visible and child ~= layout then
-                itemCount += 1
-            end
-        end
-        contentHeight = (itemCount * itemHeight) + (o.MenuPadding * 2)
-    end
-
-    -- Fallback width if too small
-    if contentWidth <= 190 then
-        contentWidth = 200
-    end
-
-    -- Determine how much space is available below dropdown
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (o.MenuPadding * 2)
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (o.MenuPadding * 2))
+    
+    -- Calculate viewport available height
     local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
-    local margin = 40 -- Smaller margin for mobile
-    local availableHeight = math.max(60, g.ViewportSize.Y - dropdownBottom - margin)
-
-    -- Choose final height for dropdown
-    local finalHeight
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - 100 -- Leave some margin
+    
+    -- Use the smaller of: maxHeight, availableHeight
+    local finalHeight = math.min(maxHeight, math.max(minHeight, availableHeight))
+    
+    -- KEY CHANGE: Instead of using content height when it's smaller,
+    -- use a standard height for consistency, but allow scrolling if content is larger
     if contentHeight > standardHeight then
+        -- If content is larger than standard, use calculated height up to max
         finalHeight = math.min(maxHeight, contentHeight)
     else
+        -- If content is smaller, use standard height for consistency
         finalHeight = math.max(standardHeight, minHeight)
+        
+        -- But don't exceed available space
         finalHeight = math.min(finalHeight, availableHeight)
-
-        -- Special case: show at least some height even with one item
-        if contentHeight < minHeight and contentHeight > 0 then
-            finalHeight = math.max(contentHeight, 80)
-        end
     end
-
-    -- Apply dropdown size
+    
     r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
-    r.UIElements.MenuCanvas.Visible = true
-    r.UIElements.MenuCanvas.BackgroundTransparency = 0
-    r.UIElements.MenuCanvas.ZIndex = 1000
-
-    -- Prevent clipping (important on mobile!)
-    r.UIElements.MenuCanvas.ClipsDescendants = false
-    r.UIElements.Menu.CanvasGroup.ClipsDescendants = false
-
-    -- Update scroll canvas based on height
+    
+    -- Enable scrolling by updating canvas size
     RecalculateCanvasSize()
 end
 
