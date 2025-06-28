@@ -3591,34 +3591,60 @@ r:Lock()
 end
 
 local function RecalculateCanvasSize()
-    q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize =
-        UDim2.fromOffset(0, q.UIElements.UIListLayout.AbsoluteContentSize.Y)
+    local scrollingFrame = r.UIElements.Menu.CanvasGroup.ScrollingFrame
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y
+
+    scrollingFrame.CanvasSize = UDim2.fromOffset(0, contentHeight)
+
+    local containerHeight = scrollingFrame.AbsoluteSize.Y
+    local enableScrolling = contentHeight > containerHeight
+
+    scrollingFrame.ScrollingEnabled = enableScrolling
+    scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+    scrollingFrame.ScrollBarThickness = enableScrolling and 6 or 0
+    scrollingFrame.ScrollBarImageTransparency = enableScrolling and 0.8 or 1
+
+    -- Safe: ensure full scroll functionality
+    scrollingFrame.ClipsDescendants = true
+    r.UIElements.Menu.CanvasGroup.ClipsDescendants = true
+    r.UIElements.MenuCanvas.ClipsDescendants = true
 end
 
+local UserInputService = game:GetService("UserInputService")
+local isMobile = UserInputService.TouchEnabled
+
+-- === Settings ===
+local MAX_HEIGHT = 300
+local MIN_HEIGHT = 50
+local PADDING = o.MenuPadding or 8
+local MOBILE_BOTTOM_MARGIN = 40
+local DESKTOP_BOTTOM_MARGIN = 100
 
 
+-- === Recalculate List Size (Menu Dropdown Resizing) ===
 local function RecalculateListSize()
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y + (PADDING * 2)
+    local contentWidth = math.max(190, r.UIElements.UIListLayout.AbsoluteContentSize.X + (PADDING * 2))
 
-     local MAX_HEIGHT = 392
-     local MIN_HEIGHT = 120
-     local PADDING = n.MenuPadding
-    local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y + PADDING
-    local newHeight = math.clamp(contentHeight, MIN_HEIGHT, MAX_HEIGHT)
+    -- Detect dropdown bottom Y position
+    local dropdownBottom = r.UIElements.Dropdown.AbsolutePosition.Y + r.UIElements.Dropdown.AbsoluteSize.Y
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - (isMobile and MOBILE_BOTTOM_MARGIN or DESKTOP_BOTTOM_MARGIN)
 
-    q.UIElements.MenuCanvas.Size = UDim2.fromOffset(
-        q.UIElements.MenuCanvas.AbsoluteSize.X,
-        newHeight
-    )
+    -- Determine final height
+    local finalHeight = math.clamp(contentHeight, MIN_HEIGHT, math.min(MAX_HEIGHT, availableHeight))
 
-    -- Also update CanvasSize for scrolling
-    q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(
-        0,
-        contentHeight
-    )
+    -- Resize outer MenuCanvas
+    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
 
-    q.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = contentHeight > MAX_HEIGHT
+    -- Ensure internal frame sizes match
+    r.UIElements.Menu.CanvasGroup.Size = UDim2.fromScale(1, 1)
+    r.UIElements.Menu.CanvasGroup.ScrollingFrame.Size = UDim2.fromScale(1, 1)
+    r.UIElements.Menu.CanvasGroup.ScrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+    r.UIElements.Menu.CanvasGroup.ScrollingFrame.AnchorPoint = Vector2.new(0, 0)
+
+    -- Recalculate scrollable area
+    RecalculateCanvasSize()
 end
-
 
 function UpdatePosition()
 local t=r.UIElements.Dropdown
