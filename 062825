@@ -3591,28 +3591,32 @@ r:Lock()
 end
 
 local function RecalculateCanvasSize()
-    q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, q.UIElements.UIListLayout.AbsoluteContentSize.Y)
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize =
+        UDim2.fromOffset(0, q.UIElements.UIListLayout.AbsoluteContentSize.Y)
 end
 
+
+
 local function RecalculateListSize()
-    -- Get the current screen/viewport height
-    local screenHeight = workspace.CurrentCamera.ViewportSize.Y
-    
-    -- Calculate maximum allowed height (e.g., 60% of screen height for mobile)
-    local maxHeight = screenHeight * 0.6
-    
-    -- Calculate the content height needed
-    local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y + n.MenuPadding
-    
-    -- Use the smaller of: content height or max allowed height
-    local finalHeight = math.min(contentHeight, maxHeight)
-    
-    -- Ensure minimum height (optional - adjust as needed)
-    local minHeight = 100
-    finalHeight = math.max(finalHeight, minHeight)
-    
-    -- Apply the calculated height
-    q.UIElements.MenuCanvas.Size = UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X, finalHeight)
+
+     local MAX_HEIGHT = 392
+     local MIN_HEIGHT = 120
+     local PADDING = n.MenuPadding
+    local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y + PADDING
+    local newHeight = math.clamp(contentHeight, MIN_HEIGHT, MAX_HEIGHT)
+
+    q.UIElements.MenuCanvas.Size = UDim2.fromOffset(
+        q.UIElements.MenuCanvas.AbsoluteSize.X,
+        newHeight
+    )
+
+    -- Also update CanvasSize for scrolling
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize = UDim2.fromOffset(
+        0,
+        contentHeight
+    )
+
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.ScrollingEnabled = contentHeight > MAX_HEIGHT
 end
 
 
