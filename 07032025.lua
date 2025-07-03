@@ -3319,40 +3319,66 @@ if q.Locked then
 q:Lock()
 end
 
+local UserInputService = game:GetService("UserInputService")
+local isMobile = UserInputService.TouchEnabled
+
+-- === Constants ===
+local MAX_HEIGHT = 300
+local MIN_HEIGHT = 50
+local PADDING = o.MenuPadding or 8
+local MOBILE_BOTTOM_MARGIN = 40
+local DESKTOP_BOTTOM_MARGIN = 100
+
+-- === Recalculate Canvas Scroll Area ===
 local function RecalculateCanvasSize()
-    local frame = q.UIElements.Menu.CanvasGroup.ScrollingFrame
-    local height = q.UIElements.UIListLayout.AbsoluteContentSize.Y
+    local scrollingFrame = r.UIElements.Menu.CanvasGroup.ScrollingFrame
+    local contentHeight = r.UIElements.UIListLayout.AbsoluteContentSize.Y
 
-    frame.CanvasSize = UDim2.fromOffset(0, height)
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+    scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
 
-    local scrolling = height > frame.AbsoluteSize.Y
-    frame.ScrollingEnabled = scrolling
-    frame.ScrollBarThickness = scrolling and 6 or 0
-    frame.ScrollBarImageTransparency = scrolling and 0.8 or 1
-    frame.AutomaticCanvasSize = Enum.AutomaticSize.None
+    local enableScrolling = contentHeight > scrollingFrame.AbsoluteSize.Y
+    scrollingFrame.ScrollingEnabled = enableScrolling
+    scrollingFrame.ScrollBarThickness = enableScrolling and 6 or 0
+    scrollingFrame.ScrollBarImageTransparency = enableScrolling and 0.8 or 1
 
-    -- Ensure all containers clip their descendants
-    frame.ClipsDescendants = true
-    q.UIElements.Menu.CanvasGroup.ClipsDescendants = true
-    q.UIElements.MenuCanvas.ClipsDescendants = true
+    -- Ensure scroll works on mobile
+    scrollingFrame.ClipsDescendants = true
+    scrollingFrame.Selectable = true
+    scrollingFrame.Active = true
+
+    -- Apply to parents if needed
+    r.UIElements.Menu.CanvasGroup.ClipsDescendants = true
+    r.UIElements.MenuCanvas.ClipsDescendants = true
 end
 
-
--- === Recalculate List Size ===
+-- === Recalculate List Container Size ===
 local function RecalculateListSize()
-    local valuesCount = #q.Values
-    local padding = n.MenuPadding or 8
-    local layout = q.UIElements.UIListLayout
-    local canvas = q.UIElements.MenuCanvas
-    local contentHeight = layout.AbsoluteContentSize.Y + padding
-    local maxHeight = 392
+    local layout = r.UIElements.UIListLayout
+    local dropdown = r.UIElements.Dropdown
+    local contentHeight = layout.AbsoluteContentSize.Y + (PADDING * 2)
+    local contentWidth = math.max(190, layout.AbsoluteContentSize.X + (PADDING * 2))
 
-    -- Determine target height (capped if too many items)
-    local finalHeight = valuesCount > 10 and maxHeight or contentHeight
+    -- Safe zone check for bottom overflow
+    local dropdownBottomY = dropdown.AbsolutePosition.Y + dropdown.AbsoluteSize.Y
+    local screenHeight = g.ViewportSize.Y
+    local availableHeight = screenHeight - dropdownBottomY - (isMobile and MOBILE_BOTTOM_MARGIN or DESKTOP_BOTTOM_MARGIN)
 
-    canvas.Size = UDim2.fromOffset(canvas.AbsoluteSize.X, finalHeight)
+    -- Clamp final height for smooth scroll container
+    local maxAllowedHeight = math.max(MIN_HEIGHT, math.min(MAX_HEIGHT, availableHeight))
+    local finalHeight = math.clamp(contentHeight, MIN_HEIGHT, maxAllowedHeight)
 
-    -- Optional: defer scroll size recalculation if needed
+    -- Set Menu size
+    r.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
+
+    -- Ensure internal scroll frame fills
+    local scrollingFrame = r.UIElements.Menu.CanvasGroup.ScrollingFrame
+    r.UIElements.Menu.CanvasGroup.Size = UDim2.fromScale(1, 1)
+    scrollingFrame.Size = UDim2.fromScale(1, 1)
+    scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.AnchorPoint = Vector2.new(0, 0)
+
+    -- Update scrollbars on next frame
     task.defer(RecalculateCanvasSize)
 end
 
