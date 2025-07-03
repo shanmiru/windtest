@@ -3324,7 +3324,7 @@ q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize=UDim2.fromOffset(0,q.UIE
 end
 
 local function RecalculateListSize()
-     print('new2')
+     print('new3')
 if#q.Values>10 then
 q.UIElements.MenuCanvas.Size=UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X,392)
 else
@@ -3503,8 +3503,8 @@ end
 Callback()
 end)
 
-task.defer(RecalculateCanvasSize)
-task.defer(RecalculateListSize)
+RecalculateCanvasSize()
+RecalculateListSize()
 end
 
 local y=0
@@ -3531,7 +3531,7 @@ q:Refresh(q.Values)
 end
 
 
-task.defer(RecalculateListSize)
+RecalculateListSize()
 
 function q.Open(s)
 q.UIElements.MenuCanvas.Visible=true
