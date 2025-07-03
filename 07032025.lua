@@ -3320,16 +3320,61 @@ q:Lock()
 end
 
 local function RecalculateCanvasSize()
-q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize=UDim2.fromOffset(0,q.UIElements.UIListLayout.AbsoluteContentSize.Y)
+    local scrollingFrame = q.UIElements.Menu.CanvasGroup.ScrollingFrame
+    local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y
+
+    scrollingFrame.CanvasSize = UDim2.fromOffset(0, contentHeight)
+
+    local containerHeight = scrollingFrame.AbsoluteSize.Y
+    local enableScrolling = contentHeight > containerHeight
+
+    scrollingFrame.ScrollingEnabled = enableScrolling
+    scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+    scrollingFrame.ScrollBarThickness = enableScrolling and 6 or 0
+    scrollingFrame.ScrollBarImageTransparency = enableScrolling and 0.8 or 1
+
+    -- Safe: ensure full scroll functionality
+    scrollingFrame.ClipsDescendants = true
+    q.UIElements.Menu.CanvasGroup.ClipsDescendants = true
+    q.UIElements.MenuCanvas.ClipsDescendants = true
 end
 
+local UserInputService = game:GetService("UserInputService")
+local isMobile = UserInputService.TouchEnabled
+
+-- === Settings ===
+local MAX_HEIGHT = 300
+local MIN_HEIGHT = 50
+local PADDING = o.MenuPadding or 8
+local MOBILE_BOTTOM_MARGIN = 40
+local DESKTOP_BOTTOM_MARGIN = 100
+
+
+-- === Recalculate List Size (Menu Dropdown Resizing) ===
 local function RecalculateListSize()
-     print('new3')
-if#q.Values>10 then
-q.UIElements.MenuCanvas.Size=UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X,392)
-else
-q.UIElements.MenuCanvas.Size=UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X,q.UIElements.UIListLayout.AbsoluteContentSize.Y+n.MenuPadding)
-end
+     print('v1')
+    local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y + (PADDING * 2)
+    local contentWidth = math.max(190, q.UIElements.UIListLayout.AbsoluteContentSize.X + (PADDING * 2))
+
+    -- Detect dropdown bottom Y position
+    local dropdownBottom = q.UIElements.Dropdown.AbsolutePosition.Y + q.UIElements.Dropdown.AbsoluteSize.Y
+    local availableHeight = g.ViewportSize.Y - dropdownBottom - (isMobile and MOBILE_BOTTOM_MARGIN or DESKTOP_BOTTOM_MARGIN)
+
+    -- Determine final height
+     local maxAllowedHeight = math.max(MIN_HEIGHT, math.min(MAX_HEIGHT, availableHeight))
+     local finalHeight = math.clamp(contentHeight, MIN_HEIGHT, maxAllowedHeight)
+
+    -- Resize outer MenuCanvas
+    q.UIElements.MenuCanvas.Size = UDim2.fromOffset(contentWidth, finalHeight)
+
+    -- Ensure internal frame sizes match
+    q.UIElements.Menu.CanvasGroup.Size = UDim2.fromScale(1, 1)
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.Size = UDim2.fromScale(1, 1)
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.Position = UDim2.new(0, 0, 0, 0)
+    q.UIElements.Menu.CanvasGroup.ScrollingFrame.AnchorPoint = Vector2.new(0, 0)
+
+    -- Recalculate scrollable area
+    task.defer(RecalculateCanvasSize)
 end
 
 
@@ -3503,8 +3548,8 @@ end
 Callback()
 end)
 
-RecalculateCanvasSize()
-RecalculateListSize()
+task.defer(RecalculateCanvasSize)
+task.defer(RecalculateListSize)
 end
 
 local y=0
@@ -3531,7 +3576,7 @@ q:Refresh(q.Values)
 end
 
 
-RecalculateListSize()
+task.defer(RecalculateListSize)
 
 function q.Open(s)
 q.UIElements.MenuCanvas.Visible=true
