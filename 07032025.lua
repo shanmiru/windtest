@@ -3320,16 +3320,42 @@ q:Lock()
 end
 
 local function RecalculateCanvasSize()
-q.UIElements.Menu.CanvasGroup.ScrollingFrame.CanvasSize=UDim2.fromOffset(0,q.UIElements.UIListLayout.AbsoluteContentSize.Y)
+    local frame = q.UIElements.Menu.CanvasGroup.ScrollingFrame
+    local height = q.UIElements.UIListLayout.AbsoluteContentSize.Y
+
+    frame.CanvasSize = UDim2.fromOffset(0, height)
+
+    local scrolling = height > frame.AbsoluteSize.Y
+    frame.ScrollingEnabled = scrolling
+    frame.ScrollBarThickness = scrolling and 6 or 0
+    frame.ScrollBarImageTransparency = scrolling and 0.8 or 1
+    frame.AutomaticCanvasSize = Enum.AutomaticSize.None
+
+    -- Ensure all containers clip their descendants
+    frame.ClipsDescendants = true
+    q.UIElements.Menu.CanvasGroup.ClipsDescendants = true
+    q.UIElements.MenuCanvas.ClipsDescendants = true
 end
 
+
+-- === Recalculate List Size ===
 local function RecalculateListSize()
-if#q.Values>10 then
-q.UIElements.MenuCanvas.Size=UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X,392)
-else
-q.UIElements.MenuCanvas.Size=UDim2.fromOffset(q.UIElements.MenuCanvas.AbsoluteSize.X,q.UIElements.UIListLayout.AbsoluteContentSize.Y+n.MenuPadding)
+    local valuesCount = #q.Values
+    local padding = n.MenuPadding or 8
+    local layout = q.UIElements.UIListLayout
+    local canvas = q.UIElements.MenuCanvas
+    local contentHeight = layout.AbsoluteContentSize.Y + padding
+    local maxHeight = 392
+
+    -- Determine target height (capped if too many items)
+    local finalHeight = valuesCount > 10 and maxHeight or contentHeight
+
+    canvas.Size = UDim2.fromOffset(canvas.AbsoluteSize.X, finalHeight)
+
+    -- Optional: defer scroll size recalculation if needed
+    task.defer(RecalculateCanvasSize)
 end
-end
+
 
 function UpdatePosition()
 local s=q.UIElements.Dropdown
@@ -3501,8 +3527,8 @@ end
 Callback()
 end)
 
-RecalculateCanvasSize()
-RecalculateListSize()
+task.defer(RecalculateCanvasSize)
+task.defer(RecalculateListSize)
 end
 
 local y=0
@@ -3529,7 +3555,7 @@ q:Refresh(q.Values)
 end
 
 
-RecalculateListSize()
+task.defer(RecalculateListSize)
 
 function q.Open(s)
 q.UIElements.MenuCanvas.Visible=true
@@ -7575,4 +7601,3 @@ return k
 end
 
 return aa
- 
