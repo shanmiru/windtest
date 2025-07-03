@@ -3352,6 +3352,7 @@ local DESKTOP_BOTTOM_MARGIN = 100
 
 -- === Recalculate List Size (Menu Dropdown Resizing) ===
 local function RecalculateListSize()
+print('new1')
     local contentHeight = q.UIElements.UIListLayout.AbsoluteContentSize.Y + (PADDING * 2)
     local contentWidth = math.max(190, q.UIElements.UIListLayout.AbsoluteContentSize.X + (PADDING * 2))
 
